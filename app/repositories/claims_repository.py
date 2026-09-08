@@ -35,6 +35,9 @@ class ClaimsRepository:
                     updated_at REAL NOT NULL
                 )"""
             )
+            cols = [r[1] for r in conn.execute("PRAGMA table_info(claims)").fetchall()]
+            if "clinical_notes" not in cols:
+                conn.execute("ALTER TABLE claims ADD COLUMN clinical_notes TEXT NOT NULL DEFAULT ''")
             conn.execute(
                 """CREATE TABLE IF NOT EXISTS claims_audit (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,13 +51,13 @@ class ClaimsRepository:
                 )"""
             )
 
-    def create_claim(self, provider_id, beneficiary_id, procedure_code, amount):
+    def create_claim(self, provider_id, beneficiary_id, procedure_code, amount, clinical_notes=""):
         claim_id = "CLM-" + uuid.uuid4().hex[:6].upper()
         now = time.time()
         with self._connect() as conn:
             conn.execute(
-                "INSERT INTO claims VALUES (?,?,?,?,?,?,?,?,?,?)",
-                (claim_id, provider_id, beneficiary_id, procedure_code, amount, "SUBMITTED", None, None, now, now),
+                "INSERT INTO claims (claim_id, provider_id, beneficiary_id, procedure_code, amount, status, ai_decision, ai_confidence, created_at, updated_at, clinical_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                (claim_id, provider_id, beneficiary_id, procedure_code, amount, "SUBMITTED", None, None, now, now, clinical_notes or ""),
             )
         return self.get_claim(claim_id)
 

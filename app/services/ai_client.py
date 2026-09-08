@@ -49,12 +49,13 @@ class AIClient:
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + self.api_key,
                 "X-Request-ID": request_id,
+                "User-Agent": "claims-demo/1.0 (+https://github.com/beelizdean/logrite-claims-demo)",
+                "Accept": "application/json",
             },
             method="POST",
         )
         try:
             with urllib.request.urlopen(req, timeout=60) as resp:
-                root.error("Exception in complete(system_prompt=%s,user_prompt=%s,request_id=%s): %s", system_prompt, user_prompt, request_id, str(exc), exc_info=True)
                 body = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")
@@ -72,8 +73,8 @@ class AIClient:
     @staticmethod
     def _stub(user_prompt):
         root.debug(">>> Entering _stub(user_prompt=%s)", user_prompt)
-        root.debug("_stub(user_prompt=%s): amount → %s", user_prompt, amount)
         amount = 0.0
+        root.debug("_stub(user_prompt=%s): amount → %s", user_prompt, amount)
         for token in user_prompt.replace(",", " ").split():
             if token.startswith("amount="):
                 try:

@@ -9,7 +9,6 @@ def _load_dotenv(path):
         root.debug("<<< Exiting _load_dotenv(path=%s)", path)
         return
     with open(path) as fh:
-        root.error("Exception in _load_dotenv(path=%s)", path, exc_info=True)
         for raw in fh:
             line = raw.strip()
             if not line or line.startswith("#") or "=" not in line:

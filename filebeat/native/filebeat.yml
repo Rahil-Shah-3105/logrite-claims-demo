@@ -1,0 +1,23 @@
+filebeat.inputs:
+  - type: filestream
+    id: claims-app
+    paths:
+      - ${APP_LOG}
+    fields:
+      service.name: claims-demo
+      data_stream.dataset: claims_demo
+    fields_under_root: true
+
+output.elasticsearch:
+  hosts: ["${ELASTIC_ENDPOINT}:443"]
+  api_key: "${ELASTIC_API_KEY}"
+  index: "logs-claims_demo-default"
+
+path.data: ${FB_DATA}
+setup.template.enabled: false
+setup.ilm.enabled: false
+logging.level: warning
+logging.to_files: true
+logging.files:
+  path: ${FB_DATA}/logs
+  name: filebeat.log

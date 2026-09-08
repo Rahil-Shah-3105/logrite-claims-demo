@@ -5,3 +5,6 @@ __pycache__/
 *.pyc
 .DS_Store
 .pid
+filebeat/native/fb/
+filebeat/native/data/
+filebeat/native/.pid
