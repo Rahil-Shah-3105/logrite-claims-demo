@@ -15,6 +15,8 @@ def configure_logging():
     file_handler.setFormatter(fmt)
     console = logging.StreamHandler()
     root.debug("configure_logging(): file_handler → %s", file_handler, extra={"event.action": "configure_logging"})
+    root.debug("configure_logging(): console → %s", console, extra={"event.action": "configure_logging"})
     console.setFormatter(fmt)
     root.debug("<<< Exiting configure_logging()", extra={"event.action": "configure_logging"})
     root.handlers = [file_handler, console]
+    root.debug("configure_logging(): root.handlers → %s", root.handlers, extra={"event.action": "configure_logging"})
