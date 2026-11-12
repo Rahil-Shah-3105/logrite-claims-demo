@@ -1,12 +1,8 @@
 import os
-import logging
-root = logging.getLogger()
 
 
 def _load_dotenv(path):
-    root.debug(">>> Entering _load_dotenv(path=%s)", path)
     if not os.path.exists(path):
-        root.debug("<<< Exiting _load_dotenv(path=%s)", path)
         return
     with open(path) as fh:
         for raw in fh:

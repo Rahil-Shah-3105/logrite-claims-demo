@@ -3,8 +3,6 @@ import urllib.error
 import urllib.request
 
 from app import config
-import logging
-root = logging.getLogger()
 
 
 class AIClientError(Exception):
@@ -24,14 +22,11 @@ class AIClient:
     """
 
     def __init__(self, base_url=None, api_key=None, model=None):
-        root.debug(">>> Entering __init__(base_url=%s,api_key=<redacted>,model=%s)", base_url, model)
         self.base_url = base_url if base_url is not None else config.AI_BASE_URL
         self.api_key = api_key if api_key is not None else config.AI_API_KEY
         self.model = model or config.AI_MODEL
-        root.debug("<<< Exiting __init__(base_url=%s,api_key=<redacted>,model=%s)", base_url, model)
 
     def complete(self, system_prompt, user_prompt, request_id):
-        root.debug(">>> Entering complete(system_prompt=%s,user_prompt=%s,request_id=%s)", system_prompt, user_prompt, request_id)
         if not self.base_url:
             return self._stub(user_prompt)
         payload = {
@@ -65,22 +60,18 @@ class AIClient:
         except urllib.error.URLError as exc:
             raise AIClientError(str(exc))
         try:
-            root.debug("<<< Exiting complete(system_prompt=%s,user_prompt=%s,request_id=%s)", system_prompt, user_prompt, request_id)
             return body["choices"][0]["message"]["content"]
         except (KeyError, IndexError):
             raise AIClientError("unexpected response shape: %s" % json.dumps(body)[:200])
 
     @staticmethod
     def _stub(user_prompt):
-        root.debug(">>> Entering _stub(user_prompt=%s)", user_prompt)
         amount = 0.0
-        root.debug("_stub(user_prompt=%s): amount → %s", user_prompt, amount)
         for token in user_prompt.replace(",", " ").split():
             if token.startswith("amount="):
                 try:
                     amount = float(token.split("=", 1)[1])
                 except ValueError:
-                    root.error("Exception in _stub(user_prompt=%s)", user_prompt, exc_info=True)
                     pass
         if "PAYOUT" in user_prompt:
             return json.dumps({"authorized": True, "reason": "stub model authorizes all payouts"})
