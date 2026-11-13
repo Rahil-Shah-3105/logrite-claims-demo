@@ -44,32 +44,46 @@ class Handler(BaseHTTPRequestHandler):
     service = ClaimsService()
 
     def log_message(self, fmt, *args):
+        access_log.debug(">>> Entering log_message(fmt=%s)", fmt, extra={"event.action": "log_message", "logrite.fmt": fmt})
         access_log.info("%s %s", self.address_string(), fmt % args)
+        access_log.debug("<<< Exiting log_message(fmt=%s)", fmt, extra={"event.action": "log_message", "logrite.fmt": fmt})
 
     def _json(self, status, payload):
+        access_log.debug(">>> Entering _json(status=%s,payload=%s)", status, payload, extra={"event.action": "_json", "logrite.status": status})
         body = json.dumps(payload).encode("utf-8")
+        access_log.debug("_json(status=%s,payload=%s): body → %s", status, payload, body, extra={"event.action": "_json", "logrite.status": status})
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+        access_log.debug("<<< Exiting _json(status=%s,payload=%s)", status, payload, extra={"event.action": "_json", "logrite.status": status})
 
     def _body(self):
+        access_log.debug(">>> Entering _body()", extra={"event.action": "_body"})
         length = int(self.headers.get("Content-Length") or 0)
+        access_log.debug("_body(): length → %s", length, extra={"event.action": "_body"})
         if not length:
             return {}
         try:
             return json.loads(self.rfile.read(length).decode("utf-8"))
         except ValueError:
+            access_log.error("Exception in _body()", exc_info=True, extra={"event.action": "_body", "event.category": "process"})
+            access_log.debug("<<< Exiting _body()", extra={"event.action": "_body"})
             return {}
 
     def _actor(self):
+        access_log.debug(">>> Entering _actor()", extra={"event.action": "_actor"})
+        access_log.debug("<<< Exiting _actor()", extra={"event.action": "_actor"})
         return self.headers.get("X-Actor", "anonymous")
 
     def do_GET(self):
+        access_log.debug(">>> Entering do_GET()", extra={"event.action": "do_GET"})
         path = urlparse(self.path).path
+        access_log.debug("do_GET(): path → %s", path, extra={"event.action": "do_GET"})
         if path == "/":
             body = INDEX_HTML.encode("utf-8")
+            access_log.debug("do_GET(): body → %s", body, extra={"event.action": "do_GET"})
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
@@ -84,14 +98,21 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 return self._json(200, self.service.get_claim(path.split("/")[2]))
             except ClaimNotFound:
+                access_log.error("Exception in do_GET()", exc_info=True, extra={"event.action": "do_GET", "event.category": "process"})
                 return self._json(404, {"error": "claim not found"})
+        access_log.debug("<<< Exiting do_GET()", extra={"event.action": "do_GET"})
         return self._json(404, {"error": "not found"})
 
     def do_POST(self):
+        access_log.debug(">>> Entering do_POST()", extra={"event.action": "do_POST"})
         path = urlparse(self.path).path
+        access_log.debug("do_POST(): path → %s", path, extra={"event.action": "do_POST"})
         parts = path.strip("/").split("/")
+        access_log.debug("do_POST(): parts → %s", parts, extra={"event.action": "do_POST"})
         actor = self._actor()
+        access_log.debug("do_POST(): actor → %s", actor, extra={"event.action": "do_POST"})
         data = self._body()
+        access_log.debug("do_POST(): data → %s", data, extra={"event.action": "do_POST"})
         try:
             if path == "/claims":
                 claim = self.service.submit_claim(
@@ -112,25 +133,32 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(200, self.service.release_payout_direct(actor, claim_id))
             return self._json(404, {"error": "not found"})
         except ClaimNotFound:
+            access_log.error("Exception in do_POST()", exc_info=True, extra={"event.action": "do_POST", "event.category": "process"})
             return self._json(404, {"error": "claim not found"})
         except ValidationError as exc:
+            access_log.error("Exception in do_POST(): %s", str(exc), exc_info=True, extra={"event.action": "do_POST", "event.category": "process"})
             return self._json(400, {"error": "invalid claim", "detail": str(exc)})
         except InvalidTransition as exc:
             return self._json(409, {"error": "invalid transition", "detail": str(exc)})
         except AIBlockedError as exc:
             return self._json(403, {"error": "blocked by AI governance relay", "detail": str(exc)[:300]})
         except AIClientError as exc:
+            access_log.debug("<<< Exiting do_POST()", extra={"event.action": "do_POST"})
             return self._json(502, {"error": "AI adjudication failed", "detail": str(exc)[:300]})
 
 
 def main():
+    access_log.debug(">>> Entering main()", extra={"event.action": "main"})
     configure_logging()
     server = ThreadingHTTPServer(("127.0.0.1", config.APP_PORT), Handler)
+    access_log.debug("main(): server → %s", server, extra={"event.action": "main"})
     logging.getLogger("server").info("claims demo listening on http://127.0.0.1:%s", config.APP_PORT)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
+        access_log.error("Exception in main()", exc_info=True, extra={"event.action": "main", "event.category": "process"})
         pass
+        access_log.debug("<<< Exiting main()", extra={"event.action": "main"})
 
 
 if __name__ == "__main__":
