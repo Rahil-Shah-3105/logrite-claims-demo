@@ -18,4 +18,5 @@ def configure_logging():
     console.setFormatter(fmt)
     root.debug("configure_logging(): console → %s", console, extra={"event.action": "configure_logging"})
     root.handlers = [file_handler, console]
+    root.debug("<<< Exiting configure_logging()", extra={"event.action": "configure_logging"})
     root.debug("configure_logging(): root.handlers → %s", root.handlers, extra={"event.action": "configure_logging"})

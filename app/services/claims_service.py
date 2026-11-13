@@ -100,9 +100,11 @@ class ClaimsService:
         root.debug(">>> Entering approve(actor=%s,claim_id=%s)", actor, claim_id, extra={"event.action": "approve", "user.name": str(actor), "logrite.claim_id": claim_id})
         claim = self._require(claim_id)
         root.debug("approve(actor=%s,claim_id=%s): claim → %s", actor, claim_id, claim, extra={"event.action": "approve", "user.name": str(actor), "logrite.claim_id": claim_id})
+        __log_start = time.time()
         if claim["status"] != "AI_APPROVED":
             raise InvalidTransition("claim %s is %s, expected AI_APPROVED" % (claim_id, claim["status"]))
         claim = self.repo.update_status(claim_id, "APPROVED")
+        root.info("approve(actor,claim_id)=%s,%s: update operation took %s ms", actor, claim_id, int((time.time() - __log_start) * 1000), extra={"event.action": "approve", "event.category": "database", "user.name": str(actor), "logrite.claim_id": claim_id})
         self.repo.write_audit(actor, "APPROVE", claim_id, claim["amount"], "APPROVED")
         root.debug("<<< Exiting approve(actor=%s,claim_id=%s)", actor, claim_id, extra={"event.action": "approve", "user.name": str(actor), "logrite.claim_id": claim_id})
         return claim
