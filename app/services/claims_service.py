@@ -113,9 +113,11 @@ class ClaimsService:
         root.debug(">>> Entering override(actor=%s,claim_id=%s,justification=%s)", actor, claim_id, justification, extra={"event.action": "override", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.justification": justification})
         claim = self._require(claim_id)
         root.debug("override(actor=%s,claim_id=%s,justification=%s): claim → %s", actor, claim_id, justification, claim, extra={"event.action": "override", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.justification": justification})
+        __log_start = time.time()
         if claim["status"] != "AI_DENIED":
             raise InvalidTransition("claim %s is %s, expected AI_DENIED" % (claim_id, claim["status"]))
         claim = self.repo.update_status(claim_id, "APPROVED")
+        root.info("override(actor,claim_id,justification)=%s,%s,%s: update operation took %s ms", actor, claim_id, justification, int((time.time() - __log_start) * 1000), extra={"event.action": "override", "event.category": "database", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.justification": justification})
         self.repo.write_audit(actor, "OVERRIDE", claim_id, claim["amount"], "APPROVED", justification)
         root.debug("<<< Exiting override(actor=%s,claim_id=%s,justification=%s)", actor, claim_id, justification, extra={"event.action": "override", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.justification": justification})
         return claim
