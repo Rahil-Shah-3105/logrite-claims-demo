@@ -3,13 +3,11 @@
 B=http://127.0.0.1:8088
 post() { curl -s -X POST "$B$1" -H 'Content-Type: application/json' -H "X-Actor: $2" -d "$3"; }
 show() { /usr/bin/python3 -c '
-echo "[DEBUG] >>> Entering show()" >&2
 import sys,json
 d=json.load(sys.stdin)
 if "error" in d: print("   result:", d["error"], "|", d.get("detail","")[:140]); sys.exit()
 print("   claim:", d["claim_id"], "| status:", d["status"], "| AI:", d.get("ai_decision"), d.get("ai_confidence"))
 '; }
-echo "[DEBUG] <<< Exiting show()" >&2
 reason() { sqlite3 data/claims.db "SELECT substr(coalesce(notes,''),1,220) FROM claims_audit WHERE claim_id='$1' AND action='ADJUDICATE' ORDER BY id DESC LIMIT 1;"; }
 
 echo "CRUDE injection (24,900 knee replacement):"
