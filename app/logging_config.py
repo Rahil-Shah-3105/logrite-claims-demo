@@ -2,21 +2,28 @@ import logging
 import os
 
 from app import config
+logger = logging.getLogger(__name__)
 
 
 def configure_logging():
+    logger.debug(">>> Entering configure_logging()", extra={"event.action": "configure_logging"})
     os.makedirs(os.path.dirname(config.LOG_FILE), exist_ok=True)
     root = logging.getLogger()
     root.setLevel(getattr(logging, config.LOG_LEVEL.upper(), logging.INFO))
+    logger.warning("configure_logging(): root → %s", root, extra={"event.action": "configure_logging"})
     root.warning("configure_logging(): root → %s", root, extra={"event.action": "configure_logging"})
     fmt = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
+    logger.debug("configure_logging(): fmt → %s", fmt, extra={"event.action": "configure_logging"})
     root.debug("configure_logging(): fmt → %s", fmt, extra={"event.action": "configure_logging"})
     file_handler = logging.FileHandler(config.LOG_FILE)
     file_handler.setFormatter(fmt)
+    logger.debug("configure_logging(): file_handler → %s", file_handler, extra={"event.action": "configure_logging"})
     root.debug("configure_logging(): file_handler → %s", file_handler, extra={"event.action": "configure_logging"})
     console = logging.StreamHandler()
     console.setFormatter(fmt)
+    logger.debug("configure_logging(): console → %s", console, extra={"event.action": "configure_logging"})
     root.debug("configure_logging(): console → %s", console, extra={"event.action": "configure_logging"})
     root.handlers = [file_handler, console]
+    logger.debug("configure_logging(): root.handlers → %s", root.handlers, extra={"event.action": "configure_logging"})
     root.debug("<<< Exiting configure_logging()", extra={"event.action": "configure_logging"})
     root.debug("configure_logging(): root.handlers → %s", root.handlers, extra={"event.action": "configure_logging"})
