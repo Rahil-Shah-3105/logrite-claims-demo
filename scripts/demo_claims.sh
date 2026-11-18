@@ -1,8 +1,16 @@
 #!/bin/sh
 # Runs the three demo claims: a clean approval, a denial, and a supervisor override, then payouts.
 B=http://127.0.0.1:${APP_PORT:-8088}
-post() { curl -s -X POST "$B$1" -H 'Content-Type: application/json' -H "X-Actor: $2" -d "$3"; }
-id() { /usr/bin/python3 -c 'import sys,json;print(json.load(sys.stdin)["claim_id"])'; }
+post() {
+    echo "[DEBUG] >>> Entering post()" >&2
+    curl -s -X POST "$B$1" -H 'Content-Type: application/json' -H "X-Actor: $2" -d "$3";
+    echo "[DEBUG] <<< Exiting post()" >&2
+}
+id() {
+    echo "[DEBUG] >>> Entering id()" >&2
+    /usr/bin/python3 -c 'import sys,json;print(json.load(sys.stdin)["claim_id"])';
+    echo "[DEBUG] <<< Exiting id()" >&2
+}
 
 echo "1. clean approval"
 C1=$(post /claims provider-1 '{"provider_id":"PRV-2201","beneficiary_id":"BEN-7731","procedure_code":"99214","amount":180}' | id)
