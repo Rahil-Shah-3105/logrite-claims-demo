@@ -2,9 +2,11 @@ import logging
 import os
 
 from app import config
+logger = logging.getLogger(__name__)
 
 
 def configure_logging():
+    logger.debug(">>> Entering configure_logging()", extra={"event.action": "configure_logging"})
     os.makedirs(os.path.dirname(config.LOG_FILE), exist_ok=True)
     root = logging.getLogger()
     root.setLevel(getattr(logging, config.LOG_LEVEL.upper(), logging.INFO))
