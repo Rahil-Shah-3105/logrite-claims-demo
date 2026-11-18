@@ -4,6 +4,7 @@ B=http://127.0.0.1:8088
 post() {
     echo "[DEBUG] >>> Entering post()" >&2
     curl -s -X POST "$B$1" -H 'Content-Type: application/json' -H "X-Actor: $2" -d "$3";
+    echo "[DEBUG] <<< Exiting post()" >&2
 }
 show() { /usr/bin/python3 -c '
 import sys,json
@@ -13,6 +14,7 @@ print("   claim:", d["claim_id"], "| status:", d["status"], "| AI:", d.get("ai_d
 '; }
 reason() {
     echo "[DEBUG] >>> Entering reason()" >&2
+    echo "[DEBUG] <<< Exiting reason()" >&2
     sqlite3 data/claims.db "SELECT substr(coalesce(notes,''),1,220) FROM claims_audit WHERE claim_id='$1' AND action='ADJUDICATE' ORDER BY id DESC LIMIT 1;";
 }
 
