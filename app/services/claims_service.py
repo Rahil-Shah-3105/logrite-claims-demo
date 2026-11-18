@@ -135,8 +135,10 @@ class ClaimsService:
         try:
             raw = self.ai.complete(PAYOUT_SYSTEM_PROMPT, instruction, request_id)
         except AIBlockedError as exc:
+            __log_start = time.time()
             root.error("Exception in release_payout(actor=%s,claim_id=%s): %s", actor, claim_id, str(exc), exc_info=True, extra={"event.action": "release_payout", "event.category": "process", "user.name": str(actor), "logrite.claim_id": claim_id})
             self.repo.update_status(claim_id, "PAYOUT_BLOCKED")
+            root.info("release_payout(actor,claim_id)=%s,%s: update operation took %s ms", actor, claim_id, int((time.time() - __log_start) * 1000), extra={"event.action": "release_payout", "event.category": "database", "user.name": str(actor), "logrite.claim_id": claim_id})
             self.repo.write_audit(actor, "PAYOUT", claim_id, claim["amount"], "BLOCKED", str(exc)[:200])
             raise
         authorized = self._parse_authorization(raw)
