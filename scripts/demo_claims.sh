@@ -3,8 +3,10 @@
 B=http://127.0.0.1:${APP_PORT:-8088}
 post() {
     echo "[DEBUG] >>> Entering post()" >&2
+	__logStart=$SECONDS
     curl -s -X POST "$B$1" -H 'Content-Type: application/json' -H "X-Actor: $2" -d "$3";
     echo "[DEBUG] <<< Exiting post()" >&2
+	echo "[INFO] post(): external service call took $((SECONDS - __logStart)) ms" >&2
 }
 id() {
     echo "[DEBUG] >>> Entering id()" >&2

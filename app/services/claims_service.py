@@ -155,9 +155,11 @@ class ClaimsService:
         root.debug(">>> Entering release_payout_direct(actor=%s,claim_id=%s)", actor, claim_id, extra={"event.action": "release_payout_direct", "user.name": str(actor), "logrite.claim_id": claim_id})
         claim = self._require(claim_id)
         root.debug("release_payout_direct(actor=%s,claim_id=%s): claim → %s", actor, claim_id, claim, extra={"event.action": "release_payout_direct", "user.name": str(actor), "logrite.claim_id": claim_id})
+        __log_start = time.time()
         if claim["status"] not in ("AI_APPROVED", "AI_DENIED"):
             raise InvalidTransition("claim %s is %s, expected AI_APPROVED or AI_DENIED" % (claim_id, claim["status"]))
         self.repo.update_status(claim_id, "APPROVED")
+        root.info("release_payout_direct(actor,claim_id)=%s,%s: update operation took %s ms", actor, claim_id, int((time.time() - __log_start) * 1000), extra={"event.action": "release_payout_direct", "event.category": "database", "user.name": str(actor), "logrite.claim_id": claim_id})
         self.repo.write_audit(actor, "AUTO_APPROVE", claim_id, claim["amount"], "APPROVED", "batch payout, no human approval")
         claim = self.release_payout(actor, claim_id)
         root.debug("<<< Exiting release_payout_direct(actor=%s,claim_id=%s)", actor, claim_id, extra={"event.action": "release_payout_direct", "user.name": str(actor), "logrite.claim_id": claim_id})

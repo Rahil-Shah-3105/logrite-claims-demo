@@ -5,6 +5,7 @@ post() {
     echo "[DEBUG] >>> Entering post()" >&2
     curl -s -X POST "$B$1" -H 'Content-Type: application/json' -H "X-Actor: $2" -d "$3";
     echo "[DEBUG] <<< Exiting post()" >&2
+	echo "[INFO] post(): external service call took $((SECONDS - __logStart)) ms" >&2
 }
 show() { /usr/bin/python3 -c '
 echo "[DEBUG] >>> Entering show()" >&2
