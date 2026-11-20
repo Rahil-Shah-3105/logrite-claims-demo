@@ -1,12 +1,8 @@
 import os
-import logging
-logger = logging.getLogger(__name__)
 
 
 def _load_dotenv(path):
-    logger.debug(">>> Entering _load_dotenv(path=%s)", path, extra={"event.action": "_load_dotenv", "logrite.path": path})
     if not os.path.exists(path):
-        logger.debug("<<< Exiting _load_dotenv(path=%s)", path, extra={"event.action": "_load_dotenv", "logrite.path": path})
         return
     with open(path) as fh:
         for raw in fh:
