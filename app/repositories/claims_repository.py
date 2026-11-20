@@ -104,12 +104,14 @@ class ClaimsRepository:
     def update_status(self, claim_id, status, ai_decision=None, ai_confidence=None):
         logger.debug(">>> Entering update_status(claim_id=%s,status=%s,ai_decision=%s,ai_confidence=%s)", claim_id, status, ai_decision, ai_confidence, extra={"event.action": "update_status", "logrite.claim_id": claim_id, "logrite.status": status, "logrite.ai_decision": ai_decision, "logrite.ai_confidence": ai_confidence})
         with self._connect() as conn:
+            __log_start = time.time()
             if ai_decision is not None:
                 conn.execute(
                     "UPDATE claims SET status=?, ai_decision=?, ai_confidence=?, updated_at=? WHERE claim_id=?",
                     (status, ai_decision, ai_confidence, time.time(), claim_id),
                 )
             else:
+                logger.info("update_status(claim_id,status,ai_decision,ai_confidence)=%s,%s,%s,%s: update operation took %s ms", claim_id, status, ai_decision, ai_confidence, int((time.time() - __log_start) * 1000), extra={"event.action": "update_status", "event.category": "database", "logrite.claim_id": claim_id, "logrite.status": status, "logrite.ai_decision": ai_decision, "logrite.ai_confidence": ai_confidence})
                 conn.execute(
                     "UPDATE claims SET status=?, updated_at=? WHERE claim_id=?",
                     (status, time.time(), claim_id),
