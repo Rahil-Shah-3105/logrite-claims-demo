@@ -100,23 +100,28 @@ class ClaimsService:
         logger.debug(">>> Entering approve(actor=%s,claim_id=%s)", actor, claim_id, extra={"event.action": "approve", "user.name": str(actor), "logrite.claim_id": claim_id})
         claim = self._require(claim_id)
         logger.debug("approve(actor=%s,claim_id=%s): claim → %s", actor, claim_id, claim, extra={"event.action": "approve", "user.name": str(actor), "logrite.claim_id": claim_id})
+        __log_start = time.time()
         if claim["status"] != "AI_APPROVED":
             raise InvalidTransition("claim %s is %s, expected AI_APPROVED" % (claim_id, claim["status"]))
         if claim["amount"] > config.POLICY_PAYOUT_CEILING:
             raise InvalidTransition("claim %s amount %.2f exceeds the payout ceiling" % (claim_id, claim["amount"]))
         claim = self.repo.update_status(claim_id, "APPROVED")
+        logger.info("approve(actor,claim_id,note)=%s,%s,%s: update operation took %s ms", actor, claim_id, note, int((time.time() - __log_start) * 1000), extra={"event.action": "approve", "event.category": "database", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.note": note})
         self.repo.write_audit(actor, "APPROVE", claim_id, claim["amount"], "APPROVED", note or None)
         logger.debug("<<< Exiting approve(actor=%s,claim_id=%s)", actor, claim_id, extra={"event.action": "approve", "user.name": str(actor), "logrite.claim_id": claim_id})
         return claim
 
     def reopen(self, actor, claim_id, reason):
+        logger.debug(">>> Entering reopen(actor=%s,claim_id=%s,reason=%s)", actor, claim_id, reason, extra={"event.action": "reopen", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.reason": reason})
         claim = self._require(claim_id)
+        logger.debug("reopen(actor=%s,claim_id=%s,reason=%s): claim → %s", actor, claim_id, reason, claim, extra={"event.action": "reopen", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.reason": reason})
         if claim["status"] not in ("AI_DENIED", "PAYOUT_REFUSED"):
             raise InvalidTransition("claim %s is %s, expected AI_DENIED or PAYOUT_REFUSED" % (claim_id, claim["status"]))
         if not reason or len(reason.strip()) < 10:
             raise ValidationError("a reopen needs a reason of at least 10 characters")
         claim = self.repo.update_status(claim_id, "SUBMITTED")
         self.repo.write_audit(actor, "REOPEN", claim_id, claim["amount"], "SUBMITTED", reason.strip()[:500])
+        logger.debug("<<< Exiting reopen(actor=%s,claim_id=%s,reason=%s)", actor, claim_id, reason, extra={"event.action": "reopen", "user.name": str(actor), "logrite.claim_id": claim_id, "logrite.reason": reason})
         return claim
 
     def override(self, actor, claim_id, justification):
